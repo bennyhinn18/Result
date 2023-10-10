@@ -1,0 +1,170 @@
+
+aucoe = {
+						http:false, //HTTP Object
+						format:'text/xml',
+						callback:function(httpobj){},
+						error:false,
+						//Create a xmlHttpRequest object - this is the constructor. 
+						getHTTPObject : function() {
+							var http = false;
+							//Use IE's ActiveX items to load the file.
+							if(typeof ActiveXObject != 'undefined') {
+								try {http = new ActiveXObject("Msxml2.XMLHTTP");}
+								catch (e) {
+									try {http = new ActiveXObject("Microsoft.XMLHTTP");}
+									catch (E) {http = false;}
+								}
+							//If ActiveX is not available, use the XMLHttpRequest of Firefox/Mozilla etc. to load the document.
+							} else if (XMLHttpRequest) {
+								try {http = new XMLHttpRequest();}
+								catch (e) {http = false;}
+							}
+							return http;
+						},
+						xmlhttp : function (url,reqXML,callback,format) {
+							try{
+							this.init(); //The XMLHttpRequest object is recreated at every call - to defeat Cache problem in IE
+							if(!this.http||!url) return;
+							if (this.http.overrideMimeType) this.http.overrideMimeType('text/xml');
+					
+							this.callback = callback;
+							if(!format) var format = "text/xml";//Default return type is 'text'
+							this.format = format.toLowerCase();
+							var ths = this;//Closure
+							
+							if (this.http.overrideMimeType) this.http.overrideMimeType('text/xml');
+					
+							//Kill the Cache problem in IE.
+							var now = "uid=" + new Date().getTime();
+							url += (url.indexOf("?")+1) ? "&" : "?";
+							url += now;
+					
+							this.http.open("POST", url, true);
+							this.http.setRequestHeader("Content-Type", "text/xml");
+							this.http.onreadystatechange = function () {//Call a function when the state changes.
+								if(!ths) return;
+								var http = ths.http;
+								if (http.readyState == 4) {//Ready State will be 4 when the document is loaded.
+									if(http.status == 200) {
+										var result = "";
+										if(http) result = http;
+										//Give the data to the callback function.
+										//				alert(result.responseText);
+										if(ths.callback) ths.callback(result.responseXML,result.responseText);
+									} else { //An error occured
+										if(ths.error) ths.error();
+									}
+								}
+							}
+							this.http.send(reqXML);
+						}catch(e){	alert("Java script warning : "+e.description);		return false;		}	// end of try catch
+		
+						},
+						init : function() {this.http = this.getHTTPObject();},
+						fillCombo : function(resxml,options){						//resxml contains the returned xml and startindex means starting index of the combo
+						var selectName = "";
+						var startIndex = 1;
+						if(options!=null&&typeof(options)!='undefined'){
+								if(typeof(options.selectObjectName)!='undefined'){		selectName = options.selectObjectName;		}
+								if(typeof(options.startIndex)!='undefined'){		startIndex = parseInt(options.startIndex);		}
+						}else{	alert("Options has been not set well.");	return false;	}
+				//		alert(selectName);
+						if(!(cbo_obj = eval(document.getElementById(selectName)))){	alert("Object '"+ selectName+"' has no properties");	return false;	}										
+						root = eval(resxml.getElementsByTagName("select")[0]);
+						if(root.getElementsByTagName('option')[0]){
+									var optionlist = resxml.getElementsByTagName('option');
+									var use_count = parseInt(optionlist.length);
+								// clear the village combo before refill
+									cbo_obj.options.length = startIndex;
+									for(var index = 0;index<use_count;index++){
+										if(optionlist[index].getElementsByTagName("value")[0] && optionlist[index].getElementsByTagName("text")[0]){
+											value = optionlist[index].getElementsByTagName("value")[0].firstChild.nodeValue;
+											text = optionlist[index].getElementsByTagName("text")[0].firstChild.nodeValue;
+											
+											if(optionlist[index].getElementsByTagName("selected")[0])
+												cbo_obj.options[index+startIndex]=new Option(text,value,true,true);
+											else
+												cbo_obj.options[index+startIndex]=new Option(text,value,false,false);
+												
+										}else{	alert("Child elements for the given select object has been not found.");		}
+									}
+							
+						}else{		alert("Empty list found.");	cbo_obj.options.length=1;	return false;	}
+						},// end of function
+						cmpDates : function (options){
+							var date1 = "";
+							var date2 = "";
+							if(options!=null&&typeof(options)!='undefined'){
+									if(typeof(options.date1)!='undefined'){	date1 = options.date1;		}
+									if(typeof(options.date2)!='undefined'){	date2 = options.date2;		}
+							}else{	alert("Options has been not set well.");	return false;	}
+							// validating date with current date
+							var d1count=d2count=dd=0;
+							var d1s  =  date1.split("-");	// Entered  date
+							var d2s =  date2.split("-");		// cur date
+							d1count =  (Date.UTC(d1s[2],d1s[1],d1s[0],0,0,0))/86400000;
+							d2count =  (Date.UTC(d2s[2],d2s[1],d2s[0],0,0,0))/86400000;
+							dd = d1count-d2count;
+							if(dd<0)					return -1;		// date1 is less than date2
+							else if(dd == 0)		return  0;		// date1 is  equal to date2
+							else 							return  1;		// date1 is greater than date2
+			
+					},	// End of function
+					isNum : function (evt,item){
+							var chrcode = (evt.which) ? evt.which : event.keyCode
+							if (chrcode > 31 && (chrcode < 48 || chrcode > 57)){	return false;	}
+							return true;
+					},
+					escapesplchar : function(evt,item){
+							var ccode = (evt.which) ? evt.which : evt.keyCode;
+							if (ccode == 34 || ccode == 38 || ccode == 39)		return false;
+							return true;
+					},
+					filterReal : function(evt,item,n,pre){
+							var charCode = (evt.which) ? evt.which : event.keyCode
+							if(charCode==46){	if(item.value.indexOf(".")<0)	return (item.value.length>0)?true:false;	else return false;  }
+							if (!(charCode > 31 && (charCode < 48 || charCode > 57))){	if(item.value.indexOf(".")<0){	if(item.value.length<n) return true; else{  item.value = "";  return true; }	}
+											if(item.value.indexOf(".")>0){	if(item.value.split(".")[1].length<pre) return true;		else{ 	 item.value = "";  return true; 	}	 }		return false;
+							}else{		return false;	}
+					},	
+					isIdExist : function(element){		//it ll return true if the given element presence else return false
+					  if (typeof element == 'string')
+							if(document.getElementById(element))		return true;	
+							else	return false;
+					},
+					isNameExist : function(element){		//it ll return true if the given element presence else return false
+					  if (typeof element == 'string')
+							if(document.getElementsByName(element))		return true;	
+							else	return false;
+					},
+					$id : function(element) {			//This ll going to retrun the object of elemnent
+					  if (typeof element == 'string')
+					  		var ele_name = element;
+							if(!(element = document.getElementById(element))){	window.alert(ele_name+" object has no properties."); return false;	}
+							return element;
+					},
+					$name : function(element) {
+					  if (typeof element == 'string')
+							if(!(element = document.getElementsByName(element))){	window.alert(ele_name+" object has no properties."); return false;	}
+							return element;
+					},
+					getTNC : function(resxml,node) {		// Get Text node content from a xml node
+					  if (typeof node == 'string'){
+							var root = eval(resxml.getElementsByTagName(node)[0]);
+							var ihtml = "";
+							for(index = 0; index < root.childNodes.length; index++)	ihtml +=  root.childNodes[index].nodeValue;
+							return ihtml;
+					  }else	 return "";
+					}
+
+
+}
+		//This will filter the key strokes {&,",'}
+		window.document.onkeypress = escsplchrs;
+		function escsplchrs(evt){
+			try{
+				if(navigator.appName == "Microsoft Internet Explorer"){		var evnt = event;	}else{  var evnt = evt;	}
+				var ccode = (evnt.which) ? evnt.which : evnt.keyCode;
+				if (ccode == 34 || ccode == 38 || ccode == 39)		return false;
+			}catch(e){		alert(e);	}
+		}

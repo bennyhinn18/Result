@@ -1,0 +1,21 @@
+
+$(document).ready(function() {
+
+  try
+{  $('#fromdate').Zebra_DatePicker();
+	 $('#todate').Zebra_DatePicker();
+	 $("#assess_strt_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	 $("#assess_end_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	 $("#strt_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	  $("#end_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	  $("#reval_end_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	  $("#photocpy_end_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	  $("#result_publish_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	  $("#result_publish_date_1styr").Zebra_DatePicker({ format: 'd-m-Y'});
+	  $("#dd_date").Zebra_DatePicker({ format: 'd-m-Y'});
+	  }
+catch(e)
+{
+}
+	  
+ });
